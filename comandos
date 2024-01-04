@@ -1,0 +1,120 @@
+linux 
+
+/etc/init.d/totvsservices status
+
+/etc/init.d/totvsservices stop
+
+/etc/init.d/totvsdbaccess start
+
+/etc/init.d/totvsappreplicacao start
+ 
+/etc/init.d/totvsappreplicacao status
+
+/etc/init.d/totvsservices start
+
+/etc/init.d/totvsservices restart
+
+chmod 777 ./pasta
+
+tree -hD ./ - trazer a data de modificacao e o tamanho
+
+cd - entra na pasta 
+
+ls - lista
+
+ls -la -mostra as permisoes 
+
+lsof - list arq abertos
+
+ls -h -mostra em megas
+
+-ls -s -mostra o tamanho do arquivo
+
+cat -abre o arquivo no prompt0
+
+mkdir -criar pasta
+
+rm / rmi -remover
+
+vi -editor de arq
+
+find -name algumacoisa.txt -print
+
+cp -r /aaaaa/* /aa/aaaa
+
+grep - procura algo por uma filtro
+
+pwd - mostra o diretorio atual
+
+mv -move arq
+
+rmdir - remove diretorio
+
+ps -lsta de processos em execução
+
+time - tempo de execucao de um prog
+
+who -quem ta logado 
+
+netstat - estatdo da rede
+
+ifconfig
+
+ping - pingar o host
+
+head - mostra as primeiras linhas de um arq (head -10)
+
+umcompress - descompacta um arq comprimido 
+
+quota - mostra do uso do disco e limite
+
+gzip - comprime ou expande um arq
+
+ps aux |grep totvs
+
+vi /usr/lib/oracle/19.18/client64/lib/network/admin/tnsnames.ora 
+
+vi /etc/fstab
+
+vi /etc/fstab
+
+systemctl daemon-reload
+
+mount -a
+
+df -h
+
+
+deletar (-f = nao pergunta se quer deletar):
+
+ls -1 *.xnu | awk 'length($0) > 15 { print $0 }' | xargs rm -f
+
+listar arquivos xnu com o  nome maior que 15:
+
+ls -1 *.xnu | awk 'length($0) > 15 { print $0 }'
+
+ls *.xnu - listar todos xnu na pasta
+
+
+with open:
+
+"r"- Ler - Valor padrão. Abre um arquivo para leitura, erro se o arquivo não existir
+
+"a"- Anexar - Abre um arquivo para anexar, cria o arquivo se ele não existir
+
+"w"- Write - Abre um arquivo para gravação, cria o arquivo caso ele não exista
+
+"x"- Criar - Cria o arquivo especificado, retorna um erro se o arquivo existir
+
+"t"- Texto - Valor padrão. Modo texto
+
+"b"- Binário - Modo binário (por exemplo, imagens)
+
+
+ Conectado
+
+  Raiz / usr / lib / oracle / 21 / client64 / lib / network / admin / tnsname.ora
+  
+copia arquivo =' scp -i C:\Users\hianny.urt\Documents\keys\homollnx.pem D:\comandos-linux\*  opc@10.192.0.95:/home/opc/teste_env_arq/'
+
+tar -xvf 
