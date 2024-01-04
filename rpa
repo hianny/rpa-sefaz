@@ -1,0 +1,255 @@
+from selenium.webdriver.support.ui import Select  
+import pandas as pd 
+from selenium import webdriver
+from time import sleep
+from selenium.webdriver.chrome.service import Service as ChromeService
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+import pyautogui
+from datetime import datetime
+import os
+import numpy as np
+
+usuario = os.getlogin()
+print(usuario)
+
+ind =1
+tabela = pd.read_excel('C:/DARF_APURAÇÃO_ESTADUAL/ICMS_DIFA_MT/ICMS_DIFA_MT.xlsx')
+#le a tabela
+df = pd.DataFrame(tabela)
+#transforma a tabela em matriz
+caminhoimp = fr'C:\Users\{usuario}\Downloads'
+
+caminhopasta =f'C:\\DARF_APURAÇÃO_ESTADUAL\\ICMS_DIFA_MT\\DOWNLOADS'
+
+with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log", 'w') as log:
+    log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}O ICMS_NORMAL iniciou\n \n")
+
+
+for index, row in df.iterrows():
+    print(index)
+    row = row.replace({np.nan:""})
+
+
+    with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+        log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O {row['REFERENCIA PARA SALVAR DOC.']} iniciou \n")
+
+    
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()))
+    url = "https://www.sefaz.mt.gov.br/arrecadacao/darlivre/menudarlivre"
+    driver.implicitly_wait(2)
+    #espera ate todo o site carregar
+    driver.get(url)
+    #entra na url da sefaz
+    driver.maximize_window()
+    #maximiza a tela
+
+    with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+        log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O site www.sefaz.mt.gov.br/arrecadacao/darlivre/menudarlivre abriu\n")
+
+    sleep(1)
+
+    link = WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.LINK_TEXT, "Pessoa Jurídica Inscrita"))
+            #espera ate aparecer o elemento
+        )
+    link.click()
+    #clica no elemento
+    sleep(1)
+    campo_inscricao = WebDriverWait(driver, 100).until(
+        EC.visibility_of_element_located((By.XPATH, '//*[@id="inscricaoEstadual"]'))
+        #espera ate aparecer o elemento
+    )
+    sleep(1)
+    campo_inscricao.send_keys(row['Inscrição Estadual Remetente']) 
+    # quando encontrar o elemento ele preenche com a linha 0 e coluna 0 de inscricao estadual
+    driver.find_element(By.XPATH,'//*[@id="btnConfirmar"]').click()
+
+    with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+        log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_A inscrição estadual nº {row['Inscrição Estadual Remetente']} foi feita\n")
+    #encontra o botao confirmar e clica 
+    try:
+        pe = WebDriverWait(driver, 100).until(
+            EC.visibility_of_element_located((By.NAME, 'periodoReferencia'))
+        )
+        pe.send_keys(row['Período de referência'])
+    except:
+        print('nao achei periodo de referencia ')
+    # quando encontrar o elemento ele preenche com a linha 0 e coluna 0 de Inscrição Estadual
+    sleep(1)
+
+    # seleciona o elemento tributo
+    dropdown = Select(driver.find_element(By.NAME, 'tributo')) 
+
+    # encontra a opção desejada
+    dropdown.select_by_visible_text(row['Especificação da receita'])
+    sleep(1)
+    # seleciona o elemento tributo
+    dropdown = Select(driver.find_element(By.NAME, 'tributo')) 
+    sleep(2)
+    dropdown.select_by_visible_text(row['Especificação da receita'])
+
+    try:
+        vcc = WebDriverWait(driver, 10).until(
+                EC.visibility_of_element_located((By.NAME, 'numrDocumentoDestinatario'))
+        )
+        vcc.send_keys(row['CPF/CNPJ/IE - Destinatário'])
+    except:
+        print('nao achei o campo cpf/cnpj')
+    sleep(3)
+
+    try:
+        #tenta char o elemento que talvez nao esteja na tabela
+        pyautogui.moveTo(658, 690)
+        sleep(3)
+        pyautogui.click()
+        bt = WebDriverWait(driver, 100).until(
+            EC.visibility_of_element_located((By.NAME, 'isNFE1'))
+        )#clica no botao de conclui
+        bt.click()
+
+
+    except:    
+         #se nao achar ele print que nao achou o elemento
+        print('nao consegui clicar')
+    sleep(1)
+
+    vcc = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, 'numrNota1'))
+    )
+    vcc.send_keys(row['Número / Chave NFE / Chave CTE'])
+    sleep(2)
+
+    vcc = WebDriverWait(driver, 20).until(
+            EC.visibility_of_element_located((By.NAME, 'dataNota1'))
+    )
+    vcc.send_keys(row['Data de Emissão'])
+    sleep(1)
+
+                # quando encontrar o elemento ele preenche com a linha 0 e coluna 0 de Data de vencimento
+    try:
+        dv = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, 'dataVencimento'))
+        )
+        dv.send_keys(row['Data de vencimento'])
+        sleep(1)
+    except:
+        print('nao foi localizado a data de vencimento')
+
+    try:
+    # quando encontrar o elemento ele preenche com o Valor Correção
+        vcc = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, 'valorCorrecao'))
+        )
+        vcc.send_keys(row['Valor Correção'])
+        sleep(1)
+    except:
+        print('nao foi localizado o calor de correção')
+
+    # quando encontrar o elemento ele preenche com o Valor Tributo
+    try:
+        vtt = WebDriverWait(driver, 10).until(
+            
+            EC.visibility_of_element_located((By.NAME, 'valorCampo'))
+        )# quando encontrar o elemento ele preenche com o Valor campo
+        vtt.send_keys(row['Valor Tributo'])
+    except:
+        sleep(1)
+    sleep(1) 
+
+    # quando encontrar o elemento ele preenche com o Valor Correção
+    try:
+        maa = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, 'diasAtraso'))
+        )
+        maa.send_keys(row['Multa Dias em atraso'])
+    except:
+        sleep(1)
+    #envia o resto das informações dos campos usando send keys 
+    
+    try:
+        #tenta achar o elemento que so aparece em alguns casos 
+        ipp = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.NAME, 'informacaoPrevista'))
+        )
+        ipp.send_keys(row['REFERENCIA PARA SALVAR DOC.'])
+
+        sleep(1)
+    except:
+        print('nao achei a informacao prevista' )
+    
+    bt = WebDriverWait(driver, 100).until(
+        EC.visibility_of_element_located((By.NAME, 'btnIncluir'))
+    )#clica no botao de conclui
+    bt.click()
+
+    with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+        log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O formulario de emissâo foi preenchido sem erros\n")
+
+    if driver.find_elements(By.ID,'qrCodeImage'):
+        #se achar o QRCODE ele faz o download de uma forma
+        #O QRCODE so aparece quando a aba de pdf nao maximiza na tela 
+        sleep(1)
+        pyautogui.moveTo(889, 404 )
+        pyautogui.rightClick()
+        sleep(1)
+        pyautogui.moveTo(905, 419)
+        pyautogui.click()
+        print('cliquei')
+        sleep(1)
+        pyautogui.press('enter')
+        print('enter')
+        sleep(2)
+
+        with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+            log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O arquivo foi emitido com sucesso\n")
+        print('tudo certo')
+        sleep(5)
+        #aqui ele faz o download na pasta download
+        os.replace(fr"{caminhoimp}\impirmirdar.pdf", fr"{caminhopasta}\impirmirdar.pdf")
+        #com o replace ele muda o pdf de diretorio
+        print(row['REFERENCIA PARA SALVAR DOC.'])
+        destino = fr'{caminhopasta}\{row["REFERENCIA PARA SALVAR DOC."]}_linha_{ind}.pdf'
+        #transforma o diretorio que for quardar o pdf em uma variavel para fazer mudancas mais para frente
+        os.rename(fr"{caminhopasta}\impirmirdar.pdf",(destino.replace(" ","_")).replace("/","_"))
+        #com o replace no destino ele tira os espacos e \ e transforma em _
+        with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+            log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O arquivo {destino} foi concluido\n")
+        print('dowload completo')
+    else:
+        print('consegui achar o gerardar')
+        sleep(1)
+        #se ele nao achar o QRCODE ele faz o download de outra forma
+        pyautogui.moveTo(633, 364)
+        pyautogui.rightClick()
+        sleep(1)
+        pyautogui.moveTo(672,430)
+        #move o mouse um pouco mais para baixo
+        #se o mouse mexesse igual o primeiro ele iria voltar para a tela de preencher a tabela 
+        pyautogui.click()
+        print('cliquei')
+        sleep(1)
+        pyautogui.press('enter')
+        sleep(1)
+        with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+            log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O arquivo foi emitido com sucesso\n")
+        print('enter')
+        sleep(7)
+        os.replace(fr"{caminhoimp}\gerardar.pdf", fr"{caminhopasta}\gerardar.pdf")
+
+        destino = fr'{caminhopasta}\{row["REFERENCIA PARA SALVAR DOC."]}_linha_{ind}.pdf'
+
+        os.rename(fr"{caminhopasta}\gerardar.pdf",(destino.replace(" ","_")).replace("/","_"))
+        with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+            log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_O arquivo {destino} foi concluido\n")
+
+    ind = ind+1
+    sleep(2)
+    with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+        log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}_A linha {ind} foi concluida\n \n")
+
+    driver.close()
+with open(fr"C:\DARF_APURAÇÃO_ESTADUAL\LOGS\ICMS_DIFA_MT_{datetime.now().strftime('%Y_%m_%d')}.log",'a') as log:
+    log.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S ')}ICMS_DIFA_MT_ terminou\n")
